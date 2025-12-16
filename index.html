@@ -122,6 +122,12 @@
             border-color: #388e3c;
         }
 
+        .option-btn.correct.selected {
+            background: #4caf50;
+            color: white;
+            border-color: #388e3c;
+        }
+
         .option-btn.incorrect {
             background: #f44336;
             color: white;
@@ -133,6 +139,19 @@
             color: white;
             border-color: #6b40e0;
             box-shadow: 0 2px 8px rgba(124, 77, 255, 0.3);
+        }
+
+        .option-btn.selected.correct-answer {
+            background: #4caf50;
+            color: white;
+            border-color: #388e3c;
+        }
+
+        .option-btn.missed-correct {
+            background: #4caf50;
+            color: white;
+            border-color: #388e3c;
+            opacity: 0.8;
         }
 
         .action-btn {
@@ -525,7 +544,6 @@
             }
             
             const wordData = currentWords[currentWordIndex];
-            const correctSelected = selectedOptions.filter(opt => wordData.correct.includes(opt));
             const isCorrect = arraysEqual(selectedOptions.sort(), wordData.correct.sort());
             
             // Сохранить ответ пользователя
@@ -559,18 +577,21 @@
                 // Отключить клики
                 button.onclick = null;
                 
-                // Подсветка
-                if (isCorrectOption) {
-                    // Правильный вариант (зеленый)
+                // Логика подсветки
+                if (isCorrectOption && isSelected) {
+                    // Пользователь выбрал правильный вариант - зеленый
                     button.classList.add('correct');
-                } else if (isSelected) {
-                    // Выбран неправильный вариант (красный)
+                    button.classList.add('selected');
+                } else if (isCorrectOption && !isSelected) {
+                    // Правильный вариант, но пользователь не выбрал его - полупрозрачный зеленый
+                    button.classList.add('missed-correct');
+                } else if (!isCorrectOption && isSelected) {
+                    // Пользователь выбрал неправильный вариант - красный
                     button.classList.add('incorrect');
-                }
-                
-                // Снять выделение с выбранных, но неправильных вариантов
-                if (isSelected && !isCorrectOption) {
                     button.classList.remove('selected');
+                } else {
+                    // Неправильный вариант, не выбран пользователем - остается серым
+                    // Ничего не делаем
                 }
             });
         }
