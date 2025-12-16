@@ -31,6 +31,7 @@
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             padding: 30px;
+            position: relative;
         }
 
         .screen {
@@ -110,7 +111,7 @@
             text-align: center;
         }
 
-        .option-btn:hover {
+        .option-btn:hover:not(.correct):not(.incorrect):not(.selected) {
             background: #e8e8e8;
             transform: translateY(-1px);
         }
@@ -209,6 +210,50 @@
             flex-wrap: wrap;
         }
 
+        /* Кнопка "Назад" */
+        .back-btn {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #7c4dff;
+            padding: 8px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .back-btn:hover {
+            background: #f0f0f0;
+            transform: translateX(-3px);
+        }
+
+        .back-btn:active {
+            transform: translateX(-3px) scale(0.95);
+        }
+
+        /* Иконка стрелки */
+        .arrow {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-left: 3px solid #7c4dff;
+            border-bottom: 3px solid #7c4dff;
+            transform: rotate(45deg);
+            margin-right: 5px;
+        }
+
+        .back-btn:hover .arrow {
+            border-color: #6b40e0;
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -217,6 +262,12 @@
         @media (max-width: 768px) {
             .container {
                 padding: 20px;
+            }
+            
+            .back-btn {
+                position: static;
+                margin-bottom: 20px;
+                align-self: flex-start;
             }
             
             .options-container {
@@ -229,6 +280,12 @@
             
             .word-display {
                 font-size: 24px;
+                margin-top: 10px;
+            }
+            
+            #screen-training {
+                display: flex;
+                flex-direction: column;
             }
         }
 
@@ -244,6 +301,11 @@
             
             .action-btn {
                 width: 100%;
+            }
+            
+            .back-btn {
+                top: 15px;
+                left: 15px;
             }
         }
     </style>
@@ -263,6 +325,9 @@
 
         <!-- Экран тренировки слова -->
         <div id="screen-training" class="screen">
+            <button class="back-btn" id="back-to-blocks-btn-training" title="Вернуться к выбору блока">
+                <span class="arrow"></span>
+            </button>
             <div class="progress" id="progress">1 / 10</div>
             <div class="word-display" id="current-word">молить</div>
             <div class="options-container" id="options-container">
@@ -285,7 +350,7 @@
 
         <!-- Экран работы над ошибками -->
         <div id="screen-mistakes" class="screen">
-            <h2>Работа над ошибками</h2>
+            <h2>Работа над ошибки</h2>
             <div class="mistakes-list" id="mistakes-list">
                 <!-- Список ошибок будет сгенерирован здесь -->
             </div>
@@ -318,7 +383,7 @@
             {"block": "3", "word": "заслушаться", "correct": ["музыки", "музыкой"], "incorrect": ["музыку", "за музыку"]},
             {"block": "3", "word": "неспособный", "correct": ["к математике", "на предательство"], "incorrect": ["в математике", "для предательства"]},
             {"block": "4", "word": "апеллировать", "correct": ["к фактам"], "incorrect": ["фактам", "о фактах"]},
-            {"block": "4", "word": "превалировать", "correct": ["над другими"], "incorrect": ["перед другими", "за другими"]},
+            {"block": "4", "word": "превалировать", "correct": ["над другими"], "incorrect": ["перед другими", "за других"]},
             {"block": "4", "word": "средство", "correct": ["от боли", "против насекомых"], "incorrect": ["для боли", "на насекомых"]},
             {"block": "4", "word": "защитить", "correct": ["граждан", "от угроз"], "incorrect": ["за граждан", "угрозам"]},
             {"block": "5", "word": "соболезновать", "correct": ["семье в горе"], "incorrect": ["семье за горе", "о семье в горе"]},
@@ -340,6 +405,7 @@
         let selectedOptions = [];
         let mistakes = [];
         let userAnswers = {};
+        let isAnswerChecked = false;
 
         // DOM элементы
         const screens = {
@@ -359,6 +425,7 @@
         const fixMistakesBtn = document.getElementById('fix-mistakes-btn');
         const nextBlockBtn = document.getElementById('next-block-btn');
         const backToBlocksBtn = document.getElementById('back-to-blocks-btn');
+        const backToBlocksBtnTraining = document.getElementById('back-to-blocks-btn-training');
         const mistakesList = document.getElementById('mistakes-list');
 
         // Инициализация блоков
@@ -400,11 +467,12 @@
                 return;
             }
 
+            isAnswerChecked = false;
             const wordData = currentWords[currentWordIndex];
             currentWordEl.textContent = wordData.word;
             
             // Обновить прогресс
-            progressEl.textContent = `Слово ${currentWordIndex + 1} из ${currentWords.length}`;
+            progressEl.textContent = `${currentWordIndex + 1} из ${currentWords.length}`;
             
             // Смешать варианты ответов
             const allOptions = [...wordData.correct, ...wordData.incorrect];
@@ -424,6 +492,7 @@
             
             checkBtn.disabled = false;
             checkBtn.textContent = 'Проверить';
+            checkBtn.onclick = checkAnswer;
         }
 
         // Перемешать массив
@@ -437,6 +506,8 @@
 
         // Выбрать/снять выбор варианта
         function toggleOption(button, option) {
+            if (isAnswerChecked) return;
+            
             if (button.classList.contains('selected')) {
                 button.classList.remove('selected');
                 selectedOptions = selectedOptions.filter(item => item !== option);
@@ -448,40 +519,59 @@
 
         // Проверить ответ
         function checkAnswer() {
+            if (isAnswerChecked) {
+                nextWord();
+                return;
+            }
+            
             const wordData = currentWords[currentWordIndex];
+            const correctSelected = selectedOptions.filter(opt => wordData.correct.includes(opt));
             const isCorrect = arraysEqual(selectedOptions.sort(), wordData.correct.sort());
             
             // Сохранить ответ пользователя
             userAnswers[wordData.word] = {
                 selected: [...selectedOptions],
                 correct: [...wordData.correct],
-                incorrect: [...wordData.incorrect]
+                incorrect: [...wordData.incorrect],
+                isCorrect: isCorrect
             };
             
             if (!isCorrect) {
                 mistakes.push(wordData);
-                highlightAnswers();
-                checkBtn.textContent = 'Далее';
-                checkBtn.disabled = false;
-                checkBtn.onclick = nextWord;
-            } else {
-                nextWord();
             }
+            
+            // Подсветить ответы
+            highlightAnswers(wordData);
+            
+            checkBtn.textContent = 'Далее';
+            isAnswerChecked = true;
         }
 
         // Подсветить правильные и неправильные ответы
-        function highlightAnswers() {
-            const wordData = currentWords[currentWordIndex];
+        function highlightAnswers(wordData) {
             const buttons = document.querySelectorAll('.option-btn');
             
             buttons.forEach(button => {
                 const option = button.textContent;
-                if (wordData.correct.includes(option)) {
+                const isCorrectOption = wordData.correct.includes(option);
+                const isSelected = selectedOptions.includes(option);
+                
+                // Отключить клики
+                button.onclick = null;
+                
+                // Подсветка
+                if (isCorrectOption) {
+                    // Правильный вариант (зеленый)
                     button.classList.add('correct');
-                } else if (selectedOptions.includes(option) && !wordData.correct.includes(option)) {
+                } else if (isSelected) {
+                    // Выбран неправильный вариант (красный)
                     button.classList.add('incorrect');
                 }
-                button.onclick = null; // Отключить клики
+                
+                // Снять выделение с выбранных, но неправильных вариантов
+                if (isSelected && !isCorrectOption) {
+                    button.classList.remove('selected');
+                }
             });
         }
 
@@ -489,8 +579,6 @@
         function nextWord() {
             currentWordIndex++;
             loadWord();
-            checkBtn.textContent = 'Проверить';
-            checkBtn.onclick = checkAnswer;
         }
 
         // Показать результаты блока
@@ -566,6 +654,12 @@
             
             backToBlocksBtn.onclick = () => {
                 showScreen('blocks');
+            };
+            
+            backToBlocksBtnTraining.onclick = () => {
+                if (confirm('Вы действительно хотите выйти? Прогресс текущего блока будет потерян.')) {
+                    showScreen('blocks');
+                }
             };
         }
 
