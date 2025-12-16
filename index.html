@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тренажер лексической сочетаемости</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans', sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        .screen {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+            font-weight: 700;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #444;
+        }
+
+        .blocks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .block-btn {
+            background: #7c4dff;
+            color: white;
+            border: none;
+            padding: 20px 10px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(124, 77, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .block-btn:hover {
+            background: #6b40e0;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(124, 77, 255, 0.4);
+        }
+
+        .word-display {
+            font-size: 28px;
+            font-weight: 700;
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #7c4dff;
+        }
+
+        .options-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 12px;
+            margin: 30px 0;
+        }
+
+        .option-btn {
+            background: #f5f5f5;
+            border: 2px solid #e0e0e0;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .option-btn:hover {
+            background: #e8e8e8;
+            transform: translateY(-1px);
+        }
+
+        .option-btn.correct {
+            background: #4caf50;
+            color: white;
+            border-color: #388e3c;
+        }
+
+        .option-btn.incorrect {
+            background: #f44336;
+            color: white;
+            border-color: #d32f2f;
+        }
+
+        .option-btn.selected {
+            background: #7c4dff;
+            color: white;
+            border-color: #6b40e0;
+            box-shadow: 0 2px 8px rgba(124, 77, 255, 0.3);
+        }
+
+        .action-btn {
+            background: #7c4dff;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(124, 77, 255, 0.3);
+            transition: all 0.3s ease;
+            display: block;
+            margin: 20px auto;
+            min-width: 200px;
+        }
+
+        .action-btn:hover {
+            background: #6b40e0;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(124, 77, 255, 0.4);
+        }
+
+        .action-btn.secondary {
+            background: #757575;
+            box-shadow: 0 4px 8px rgba(117, 117, 117, 0.3);
+        }
+
+        .action-btn.secondary:hover {
+            background: #616161;
+            box-shadow: 0 6px 12px rgba(117, 117, 117, 0.4);
+        }
+
+        .progress {
+            text-align: center;
+            margin: 20px 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .mistakes-list {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #ff9800;
+        }
+
+        .mistake-item {
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .word {
+            font-weight: 700;
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .correct-answers {
+            color: #4caf50;
+            font-weight: 500;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .options-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .blocks-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .word-display {
+                font-size: 24px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .blocks-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .button-group {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .action-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Экран выбора блока -->
+        <div id="screen-blocks" class="screen active">
+            <h1>Тренажер лексической сочетаемости</h1>
+            <p style="text-align: center; margin-bottom: 20px; color: #666;">
+                Выберите блок для тренировки. В каждом блоке по несколько слов для отработки.
+            </p>
+            <div class="blocks-grid" id="blocks-container">
+                <!-- Блоки будут сгенерированы автоматически -->
+            </div>
+        </div>
+
+        <!-- Экран тренировки слова -->
+        <div id="screen-training" class="screen">
+            <div class="progress" id="progress">Слово 1 из 10</div>
+            <div class="word-display" id="current-word">молить</div>
+            <div class="options-container" id="options-container">
+                <!-- Варианты ответов будут сгенерированы здесь -->
+            </div>
+            <button class="action-btn" id="check-btn">Проверить</button>
+        </div>
+
+        <!-- Экран результатов блока -->
+        <div id="screen-results" class="screen">
+            <h2 id="results-title">Результаты блока</h2>
+            <div id="results-content">
+                <!-- Контент будет меняться в зависимости от наличия ошибок -->
+            </div>
+            <div class="button-group">
+                <button class="action-btn" id="fix-mistakes-btn" style="display: none;">Исправить ошибки</button>
+                <button class="action-btn" id="next-block-btn">Выбрать следующий блок</button>
+            </div>
+        </div>
+
+        <!-- Экран работы над ошибками -->
+        <div id="screen-mistakes" class="screen">
+            <h2>Работа над ошибками</h2>
+            <div class="mistakes-list" id="mistakes-list">
+                <!-- Список ошибок будет сгенерирован здесь -->
+            </div>
+            <div class="button-group">
+                <button class="action-btn" id="back-to-blocks-btn">Выбрать следующий блок</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Данные из таблицы
+        const data = [
+            {"block": "1.0", "word": "командовать", "correct": ["армией", "надо мной"], "incorrect": ["о армии", "на подчинённых"]},
+            {"block": "1.0", "word": "молить", "correct": ["о пощаде", "бога"], "incorrect": ["за пощаду", "на бога"]},
+            {"block": "1.0", "word": "пародия", "correct": ["на политика"], "incorrect": ["о политике", "политика"]},
+            {"block": "1.0", "word": "разубедить", "correct": ["друга в ошибке"], "incorrect": ["другу о ошибке", "от ошибки"]},
+            {"block": "1.0", "word": "указать", "correct": ["дорогу", "на недостатки"], "incorrect": ["о дороге", "за недостатки"]},
+            {"block": "1.0", "word": "восхищаться", "correct": ["героем", "талантом"], "incorrect": ["на героя", "за талант"]},
+            {"block": "1.0", "word": "иммунитет", "correct": ["к болезни", "против вируса"], "incorrect": ["от болезни", "за вирус"]},
+            {"block": "1.0", "word": "молиться", "correct": ["богу", "на звёзды"], "incorrect": ["за бога", "звёздам"]},
+            {"block": "1.0", "word": "ровесник", "correct": ["века", "мне"], "incorrect": ["в веке", "мной"]},
+            {"block": "1.0", "word": "хозяин", "correct": ["дома", "судьбе"], "incorrect": ["в доме", "о судьбе"]},
+            {"block": "2.0", "word": "руководить", "correct": ["отделом", "проектом"], "incorrect": ["в отделе", "за проектом"]},
+            {"block": "2.0", "word": "упор", "correct": ["на развитие", "на результатах"], "incorrect": ["в развитие", "о результатах"]},
+            {"block": "2.0", "word": "абонемент", "correct": ["на занятия"], "incorrect": ["в занятия", "для занятий"]},
+            {"block": "2.0", "word": "с помощью", "correct": ["с помощью друга"], "incorrect": ["с помощью другу"]},
+            {"block": "2.0", "word": "командующий", "correct": ["армией"], "incorrect": ["армии", "над армией"]},
+            {"block": "3.0", "word": "превосходить", "correct": ["соперника в скорости"], "incorrect": ["сопернику о скорости", "за скорость"]},
+            {"block": "3.0", "word": "тревожиться", "correct": ["за сына", "о будущем"], "incorrect": ["о сыне", "за будущее"]},
+            {"block": "3.0", "word": "заслушаться", "correct": ["музыки", "музыкой"], "incorrect": ["музыку", "за музыку"]},
+            {"block": "3.0", "word": "неспособный", "correct": ["к математике", "на предательство"], "incorrect": ["в математике", "для предательства"]},
+            {"block": "4.0", "word": "апеллировать", "correct": ["к фактам"], "incorrect": ["фактам", "о фактах"]},
+            {"block": "4.0", "word": "превалировать", "correct": ["над другими"], "incorrect": ["перед другими", "за другими"]},
+            {"block": "4.0", "word": "средство", "correct": ["от боли", "против насекомых"], "incorrect": ["для боли", "на насекомых"]},
+            {"block": "4.0", "word": "защитить", "correct": ["граждан", "от угроз"], "incorrect": ["за граждан", "угрозам"]},
+            {"block": "5.0", "word": "соболезновать", "correct": ["семье в горе"], "incorrect": ["семье за горе", "о семье в горе"]},
+            {"block": "5.0", "word": "беспокоиться", "correct": ["о детях", "за результат"], "incorrect": ["за детей", "о результате"]},
+            {"block": "5.0", "word": "итог", "correct": ["года", "всему"], "incorrect": ["в году", "всего"]},
+            {"block": "5.0", "word": "невежественный", "correct": ["в науке"], "incorrect": ["о науке", "наукам"]},
+            {"block": "6.0", "word": "устойчивость", "correct": ["к нагрузкам", "против болезней"], "incorrect": ["на нагрузках", "от болезней"]},
+            {"block": "6.0", "word": "благодарность", "correct": ["учителю"], "incorrect": ["учителя", "за учителя"]},
+            {"block": "6.0", "word": "заявление", "correct": ["о приёме", "на отпуск"], "incorrect": ["за приём", "в отпуск"]},
+            {"block": "7.0", "word": "равносильный", "correct": ["для атлета", "победе"], "incorrect": ["атлету", "победой"]},
+            {"block": "7.0", "word": "страх", "correct": ["высоты", "к темноте", "перед неизвестностью"], "incorrect": ["высоте", "за темноту", "о неизвестности"]},
+            {"block": "7.0", "word": "голосить", "correct": ["по покойнику", "по покойном"], "incorrect": ["о покойнике", "покойником"]}
+        ];
+
+        // Глобальные переменные состояния
+        let currentBlock = null;
+        let currentWordIndex = 0;
+        let currentWords = [];
+        let selectedOptions = [];
+        let mistakes = [];
+        let userAnswers = {};
+
+        // DOM элементы
+        const screens = {
+            blocks: document.getElementById('screen-blocks'),
+            training: document.getElementById('screen-training'),
+            results: document.getElementById('screen-results'),
+            mistakes: document.getElementById('screen-mistakes')
+        };
+
+        const blocksContainer = document.getElementById('blocks-container');
+        const currentWordEl = document.getElementById('current-word');
+        const optionsContainer = document.getElementById('options-container');
+        const checkBtn = document.getElementById('check-btn');
+        const progressEl = document.getElementById('progress');
+        const resultsContent = document.getElementById('results-content');
+        const resultsTitle = document.getElementById('results-title');
+        const fixMistakesBtn = document.getElementById('fix-mistakes-btn');
+        const nextBlockBtn = document.getElementById('next-block-btn');
+        const backToBlocksBtn = document.getElementById('back-to-blocks-btn');
+        const mistakesList = document.getElementById('mistakes-list');
+
+        // Инициализация блоков
+        function initBlocks() {
+            blocksContainer.innerHTML = '';
+            const blocks = [...new Set(data.map(item => item.block))];
+            
+            blocks.forEach(block => {
+                const button = document.createElement('button');
+                button.className = 'block-btn';
+                button.textContent = block;
+                button.onclick = () => startBlock(block);
+                blocksContainer.appendChild(button);
+            });
+        }
+
+        // Начать блок
+        function startBlock(block) {
+            currentBlock = block;
+            currentWordIndex = 0;
+            mistakes = [];
+            userAnswers = {};
+            currentWords = data.filter(item => item.block === block);
+            
+            showScreen('training');
+            loadWord();
+        }
+
+        // Показать экран
+        function showScreen(screenName) {
+            Object.values(screens).forEach(screen => screen.classList.remove('active'));
+            screens[screenName].classList.add('active');
+        }
+
+        // Загрузить слово
+        function loadWord() {
+            if (currentWordIndex >= currentWords.length) {
+                showResults();
+                return;
+            }
+
+            const wordData = currentWords[currentWordIndex];
+            currentWordEl.textContent = wordData.word;
+            
+            // Обновить прогресс
+            progressEl.textContent = `Слово ${currentWordIndex + 1} из ${currentWords.length}`;
+            
+            // Смешать варианты ответов
+            const allOptions = [...wordData.correct, ...wordData.incorrect];
+            shuffleArray(allOptions);
+            
+            // Отобразить варианты
+            optionsContainer.innerHTML = '';
+            selectedOptions = [];
+            
+            allOptions.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'option-btn';
+                button.textContent = option;
+                button.onclick = () => toggleOption(button, option);
+                optionsContainer.appendChild(button);
+            });
+            
+            checkBtn.disabled = false;
+            checkBtn.textContent = 'Проверить';
+        }
+
+        // Перемешать массив
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Выбрать/снять выбор варианта
+        function toggleOption(button, option) {
+            if (button.classList.contains('selected')) {
+                button.classList.remove('selected');
+                selectedOptions = selectedOptions.filter(item => item !== option);
+            } else {
+                button.classList.add('selected');
+                selectedOptions.push(option);
+            }
+        }
+
+        // Проверить ответ
+        function checkAnswer() {
+            const wordData = currentWords[currentWordIndex];
+            const isCorrect = arraysEqual(selectedOptions.sort(), wordData.correct.sort());
+            
+            // Сохранить ответ пользователя
+            userAnswers[wordData.word] = {
+                selected: [...selectedOptions],
+                correct: [...wordData.correct],
+                incorrect: [...wordData.incorrect]
+            };
+            
+            if (!isCorrect) {
+                mistakes.push(wordData);
+                highlightAnswers();
+                checkBtn.textContent = 'Далее';
+                checkBtn.disabled = false;
+                checkBtn.onclick = nextWord;
+            } else {
+                nextWord();
+            }
+        }
+
+        // Подсветить правильные и неправильные ответы
+        function highlightAnswers() {
+            const wordData = currentWords[currentWordIndex];
+            const buttons = document.querySelectorAll('.option-btn');
+            
+            buttons.forEach(button => {
+                const option = button.textContent;
+                if (wordData.correct.includes(option)) {
+                    button.classList.add('correct');
+                } else if (selectedOptions.includes(option) && !wordData.correct.includes(option)) {
+                    button.classList.add('incorrect');
+                }
+                button.onclick = null; // Отключить клики
+            });
+        }
+
+        // Следующее слово
+        function nextWord() {
+            currentWordIndex++;
+            loadWord();
+            checkBtn.textContent = 'Проверить';
+            checkBtn.onclick = checkAnswer;
+        }
+
+        // Показать результаты блока
+        function showResults() {
+            resultsTitle.textContent = `Результаты блока ${currentBlock}`;
+            
+            if (mistakes.length === 0) {
+                resultsContent.innerHTML = `
+                    <div style="text-align: center; padding: 40px;">
+                        <h2 style="color: #4caf50; margin-bottom: 20px;">Всё верно!</h2>
+                        <p style="color: #666; margin-bottom: 30px;">
+                            Вы успешно выполнили все задания блока ${currentBlock}.
+                        </p>
+                    </div>
+                `;
+                fixMistakesBtn.style.display = 'none';
+            } else {
+                resultsContent.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <h3 style="color: #ff9800; margin-bottom: 20px;">Найдены ошибки: ${mistakes.length}</h3>
+                        <p style="color: #666; margin-bottom: 30px;">
+                            Вы допустили ошибки в ${mistakes.length} слов${getRussianPlural(mistakes.length)}.
+                        </p>
+                    </div>
+                `;
+                fixMistakesBtn.style.display = 'inline-block';
+            }
+            
+            showScreen('results');
+        }
+
+        // Показать экран работы над ошибками
+        function showMistakesScreen() {
+            mistakesList.innerHTML = '';
+            
+            mistakes.forEach((mistake, index) => {
+                const div = document.createElement('div');
+                div.className = 'mistake-item';
+                div.innerHTML = `
+                    <div class="word">${index + 1}. ${mistake.word}</div>
+                    <div class="correct-answers">Правильно: ${mistake.correct.join(', ')}</div>
+                `;
+                mistakesList.appendChild(div);
+            });
+            
+            showScreen('mistakes');
+        }
+
+        // Вспомогательная функция для сравнения массивов
+        function arraysEqual(a, b) {
+            if (a.length !== b.length) return false;
+            const sortedA = [...a].sort();
+            const sortedB = [...b].sort();
+            return sortedA.every((val, index) => val === sortedB[index]);
+        }
+
+        // Вспомогательная функция для русских окончаний
+        function getRussianPlural(number) {
+            if (number % 10 === 1 && number % 100 !== 11) return 'е';
+            if ([2, 3, 4].includes(number % 10) && ![12, 13, 14].includes(number % 100)) return 'ах';
+            return 'ах';
+        }
+
+        // Инициализация обработчиков событий
+        function initEventListeners() {
+            checkBtn.onclick = checkAnswer;
+            
+            fixMistakesBtn.onclick = showMistakesScreen;
+            
+            nextBlockBtn.onclick = () => {
+                showScreen('blocks');
+            };
+            
+            backToBlocksBtn.onclick = () => {
+                showScreen('blocks');
+            };
+        }
+
+        // Инициализация приложения
+        function init() {
+            initBlocks();
+            initEventListeners();
+        }
+
+        // Запуск приложения
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
